@@ -1,0 +1,17 @@
+#minesweeper {
+    display: block;
+    margin: 0 auto;
+    box-shadow: -2px -2px 2px #efefef, 5px 5px 5px #b9b9b9;
+    border: 1px solid #222;
+}
+
+#console{
+    
+    display: block;
+    margin: 20px auto;
+    width: 200px;
+}
+
+#console input {
+    width: 100px;
+}

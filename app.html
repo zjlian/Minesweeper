@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./styles/style.css">
+    <script src="./scripts/Minesweeper.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="minesweeper"></canvas>
+    <div id="console">
+        高度：<input type="text" id="height"><br>
+        宽度：<input type="text" id="width"><br>
+        雷数：<input type="text" id="amount"><br>
+        <button id="start">新游戏</button>
+    </div>
+    
+    <script>
+        let ms = new Minesweeper('minesweeper');
+        ms.setWHA(200, 100, 2000);
+        window.onload =function() {
+            let btn = document.getElementById('start');
+            let hf = document.getElementById('height');
+            let wf = document.getElementById('width');
+            let af = document.getElementById('amount');
+            btn.onclick = function() {
+                let h = parseInt(hf.value);
+                let w = parseInt(wf.value);
+                let a = parseInt(af.value);
+                if(a > (h*w)*0.8) {
+                    a = Math.floor((h*w)*0.8);
+                    af.value = a;
+                }
+                ms.setWHA(w,h,a);
+                ms.ready();
+            };
+        };
+    </script>
+</body>
+</html>
