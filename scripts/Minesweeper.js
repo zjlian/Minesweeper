@@ -40,6 +40,13 @@ let Landmine = (function() {
     return Landmine;
 }());
 
+let C = (function() {
+    function C(x, y) {
+        this.x = x; this.y = y;
+    }
+    return C;
+}());
+
 let Minesweeper = (function() {
     function Minesweeper(canvasID) {
         this.minefields;    //缓存获取到的canvas标签
@@ -76,7 +83,6 @@ let Minesweeper = (function() {
 
             //按下鼠标主键
             if(e.button === 0 && tempLandmine.getMarkType() === 0) {
-                
                 if(!that.gameStart) {
                     that.createLandmines(curX, curY);
                     that.gameStart = true;
@@ -84,7 +90,6 @@ let Minesweeper = (function() {
                 //that.tester();
                 if(!that.matrix[curY][curX].beenOverturn)
                     that.clickOn(curX, curY);
-            
             //按下鼠标次键
             } else if(e.button === 2 && !tempLandmine.beenOverturn) {
                 that.make(curX, curY);
@@ -93,8 +98,7 @@ let Minesweeper = (function() {
                 if(n !== 0) 
                     that.drawBlock(curX, curY, n);
             }
-            
-        }, false);
+        });
 
         //绑定鼠标移动事件， 用于给方块绘制高亮
         let tmpX = 3, tmpY = 3;
@@ -195,7 +199,6 @@ let Minesweeper = (function() {
         while(count < this.amount) {
             let curX = this.randomX(),
                 curY = this.randomY();
-            
 
             //判断地雷是否生成在参数位置，是就跳过此次循环
             if(curX === x && curY === y)
@@ -235,9 +238,7 @@ let Minesweeper = (function() {
                         if(this.matrix[i-1][j+1].hasBomb)
                             ++count;
                     }
-                    
                 }
-                
                 //左侧的一个方块
                 if(j > 0) {
                     if(this.matrix[i][j-1].hasBomb)
@@ -307,7 +308,6 @@ let Minesweeper = (function() {
             this.drawBlock(x, y, 1);
             this.sweep(x, y);
         }
-        
     };
     //死亡
     Minesweeper.prototype.died = function() {
@@ -327,56 +327,68 @@ let Minesweeper = (function() {
         this.ct.fillText('DIE', 0, 0);
     }
     Minesweeper.prototype.sweep = function(x, y) {
-        let C = (function() {
-            function C(x, y) {
-                this.x = x; this.y = y;
-            }
-            return C;
-        }());
+        let queue = [];
+        queue.push(new C(x, y));
+        let M = this.matrix;
 
-        let stack = [];
-        stack.push(new C(x, y));
-
-        while(stack.length !== 0) {
-            let tmpC = stack.pop();
-            let x = tmpC.x, y = tmpC.y;
+        while(queue.length !== 0) {
+            let tmpC = queue.shift();
+            let x = tmpC.x;
+            let y = tmpC.y;
             this.clickOn(x, y);
 
-            if(this.matrix[y][x].number === 0) {
-                if(y > 0) {
-                    if(x > 0) {
-                        if(!this.matrix[y-1][x-1].beenOverturn) 
-                            stack.push(new C(x-1, y-1));
+            if(M[y][x].number === 0) {
+                let rb = this.getRoundBlock(x, y);
+                //
+                rb.map((val, index) => {
+                    let x = val.x, y = val.y;
+                    if(!M[y][x].beenOverturn) {
+                        queue.push(val);
                     }
-                    if(!this.matrix[y-1][x].beenOverturn) 
-                            stack.push(new C(x, y-1));
-                    if(x < this.x - 1) {
-                        if(!this.matrix[y-1][x+1].beenOverturn) 
-                            stack.push(new C(x+1, y-1));
-                    }
-                }
-                if(x > 0) {
-                    if(!this.matrix[y][x-1].beenOverturn) 
-                        stack.push(new C(x-1, y));
-                }
-                if(x < this.x - 1) {
-                    if(!this.matrix[y][x+1].beenOverturn) 
-                        stack.push(new C(x+1, y));
-                }
-                if(y < this.y - 1) {
-                    if(x > 0) {
-                        if(!this.matrix[y+1][x-1].beenOverturn) 
-                            stack.push(new C(x-1, y+1));
-                    }
-                    if(!this.matrix[y+1][x].beenOverturn) 
-                            stack.push(new C(x, y+1));
-                    if(x < this.x - 1) {
-                        if(!this.matrix[y+1][x+1].beenOverturn) 
-                            stack.push(new C(x+1, y+1));
-                    }
-                }
+                });
             }
         }
+
+        // while(stack.length !== 0) {
+        //     let tmpC = stack.pop();
+        //     let x = tmpC.x, y = tmpC.y;
+        //     this.clickOn(x, y);
+
+        //     if(this.matrix[y][x].number === 0) {
+        //         if(y > 0) {
+        //             if(x > 0) {
+        //                 if(!this.matrix[y-1][x-1].beenOverturn) 
+        //                     stack.push(new C(x-1, y-1));
+        //             }
+        //             if(!this.matrix[y-1][x].beenOverturn) 
+        //                     stack.push(new C(x, y-1));
+        //             if(x < this.x - 1) {
+        //                 if(!this.matrix[y-1][x+1].beenOverturn) 
+        //                     stack.push(new C(x+1, y-1));
+        //             }
+        //         }
+        //         if(x > 0) {
+        //             if(!this.matrix[y][x-1].beenOverturn) 
+        //                 stack.push(new C(x-1, y));
+        //         }
+        //         if(x < this.x - 1) {
+        //             if(!this.matrix[y][x+1].beenOverturn) 
+        //                 stack.push(new C(x+1, y));
+        //         }
+        //         if(y < this.y - 1) {
+        //             if(x > 0) {
+        //                 if(!this.matrix[y+1][x-1].beenOverturn) 
+        //                     stack.push(new C(x-1, y+1));
+        //             }
+        //             if(!this.matrix[y+1][x].beenOverturn) 
+        //                     stack.push(new C(x, y+1));
+        //             if(x < this.x - 1) {
+        //                 if(!this.matrix[y+1][x+1].beenOverturn) 
+        //                     stack.push(new C(x+1, y+1));
+        //             }
+        //         }
+        //     }
+        // }
     };
 
     //绘制函数
@@ -449,6 +461,25 @@ let Minesweeper = (function() {
             }
         }
     };
+    Minesweeper.prototype.getRoundBlock = function(x, y) {
+        let que = new Array();
+        que.push(new C(x - 1, y - 1));
+        que.push(new C(x, y - 1));
+        que.push(new C(x + 1, y));
+        que.push(new C(x - 1, y));
+        que.push(new C(x, y - 1));
+        que.push(new C(x + 1, y + 1));
+        que.push(new C(x - 1, y + 1));
+        que.push(new C(x, y + 1));
+
+        for(let i = 0; i < que.length; ) {
+            let y = que[i].y, x = que[i].x;
+            if(y < 0 || y >= this.y || x < 0 || x >= this.x) {
+                que.splice(i, 1);
+            } else ++i;
+        }
+        return que;
+    }
 
     return Minesweeper;
 }());
