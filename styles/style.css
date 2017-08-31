@@ -1,11 +1,21 @@
+body{
+    margin: 0;
+    padding: 0;
+}
 #minesweeper {
     display: block;
     margin: 0 auto;
     box-shadow: -2px -2px 2px #efefef, 5px 5px 5px #b9b9b9;
     border: 1px solid #222;
 }
-
-#console{
+#status {
+    max-width: 640px;
+    height: 30px;
+    margin: 0 auto;
+    padding: 0 40px;
+    background:#CFCBCB;
+}
+#console {
     
     display: block;
     margin: 20px auto;

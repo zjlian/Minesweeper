@@ -7,6 +7,9 @@
     <title>Document</title>
 </head>
 <body>
+    <div id="status">
+        <span> 💣 <span id="lastMines">NaN</span></span>
+    </div>
     <canvas id="minesweeper"></canvas>
     <div id="console">
         高度：<input type="text" id="height"><br>
@@ -16,13 +19,16 @@
     </div>
     
     <script>
+        let lastMines = document.querySelector('#lastMines');
+
         let ms = new Minesweeper('minesweeper');
         ms.setWHA(200, 100, 2000);
-        window.onload =function() {
+        window.onload = function() {
             let btn = document.getElementById('start');
             let hf = document.getElementById('height');
             let wf = document.getElementById('width');
             let af = document.getElementById('amount');
+            lastMines.childNodes[0].data = af.value;
             btn.onclick = function() {
                 let h = parseInt(hf.value);
                 let w = parseInt(wf.value);
@@ -35,6 +41,14 @@
                 ms.ready();
             };
         };
+
+        let tmpLMV = ms.lastMines;
+        let timer = setInterval(function() {
+            if(tmpLMV !== ms.lastMines) {
+                tmpLMV = ms.lastMines;
+                lastMines.childNodes[0].data = tmpLMV;
+            }
+        }, 100);
     </script>
 </body>
 </html>

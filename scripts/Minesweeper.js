@@ -61,6 +61,8 @@ let Minesweeper = (function() {
         this.y = 9;
         this.amount = 10;
 
+        this.lastMines = 0;
+
         this.init(canvasID);
 
         let that = this;
@@ -152,7 +154,7 @@ let Minesweeper = (function() {
     Minesweeper.prototype.blockSize = 24;
     //image[] 全类共享的图片资源
     Minesweeper.prototype.imagesOfGame = (function() {
-        let imgObj = [];
+        let imgObj = new Array();
         for(let i = 0; i < 5; i++)
             imgObj[i] = new Image();
 
@@ -182,9 +184,9 @@ let Minesweeper = (function() {
         this.ct = this.minefields.getContext('2d');
     };
     Minesweeper.prototype.ready = function() {
-        this.matrix = [];
+        this.matrix = new Array();
         for(let i = 0; i < this.y; i++) {
-            this.matrix[i] = [];
+            this.matrix[i] = new Array();
             for(let j = 0; j < this.x; j++) {
                 this.matrix[i][j] = new Landmine(false);
             }
@@ -226,6 +228,7 @@ let Minesweeper = (function() {
             this.matrix[curY][curX].addBomb();
             count++;
         }
+        this.lastMines = count;
         //计算每个区块四周地雷的数量
         for(let i = 0; i < this.y; i++) {
             for(let j = 0; j < this.x; j++) {
@@ -282,8 +285,10 @@ let Minesweeper = (function() {
             this.matrix[y][x].setQestionMark();
         } else if(this.matrix[y][x].qestionMark) {
             this.matrix[y][x].clearMark();
+            ++this.lastMines;
         } else if(!this.matrix[y][x].qestionMark && !this.matrix[y][x].flag) {
             this.matrix[y][x].setFlag();
+            --this.lastMines;
         } else
             ;
     };
