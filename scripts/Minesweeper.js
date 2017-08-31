@@ -88,17 +88,21 @@ let Minesweeper = (function() {
                     that.gameStart = true;
                 }
                 //that.tester();
-                if(!that.matrix[curY][curX].beenOverturn)
+                //if(!that.matrix[curY][curX].beenOverturn)
                     that.clickOn(curX, curY);
             //按下鼠标次键
             } else if(e.button === 2 && !tempLandmine.beenOverturn) {
                 that.make(curX, curY);
                 that.drawBlock(curX, curY, 0);
                 let n = tempLandmine.getMarkType();
-                if(n !== 0) 
+                if(n !== 0)
                     that.drawBlock(curX, curY, n);
             }
         });
+
+        this.minefields.addEventListener('ondblclick', function(e) {
+            console.log(e);
+        })
 
         //绑定鼠标移动事件， 用于给方块绘制高亮
         let tmpX = 3, tmpY = 3;
@@ -135,7 +139,7 @@ let Minesweeper = (function() {
                     let n = tmpLandmine.getMarkType();
                     that.drawBlock(tmpX, tmpY, n);
                 }
-                
+
                 //绘制高亮，并缓存绘制的坐标
                 that.ct.fillStyle = 'rgba(255, 255, 255, 0.3)';
                 that.ct.fillRect(curX * that.blockSize, curY * that.blockSize, that.blockSize, that.blockSize);
@@ -145,13 +149,13 @@ let Minesweeper = (function() {
         }, false);
     }
     //雷区的绘制大小
-    Minesweeper.prototype.blockSize = 28;
+    Minesweeper.prototype.blockSize = 24;
     //image[] 全类共享的图片资源
     Minesweeper.prototype.imagesOfGame = (function() {
         let imgObj = [];
         for(let i = 0; i < 5; i++)
             imgObj[i] = new Image();
-        
+
         imgObj[0].src = 'images/unknown.jpg';
         imgObj[1].src = 'images/known.jpg';
         imgObj[2].src = 'images/flag.png';
@@ -283,32 +287,7 @@ let Minesweeper = (function() {
         } else
             ;
     };
-    //点击
-    Minesweeper.prototype.clickOn = function(x, y) {
-        if(x < 0 || y < 0 || x > this.x - 1 || y > this.y - 1)
-            return;
-        let landmine = this.matrix[y][x];
-        if(landmine.beenOverturn) return;
 
-        if(landmine.flag || landmine.qestionMark)
-            return;
-
-        landmine.overturn();
-
-        if(landmine.hasBomb) {
-            this.died();
-            this.over = true;
-            return;
-        }
-        
-        if(landmine.number !== 0) {
-            this.drawBlock(x, y, 1);
-            this.drawNumber(x, y, landmine.number);
-        } else {
-            this.drawBlock(x, y, 1);
-            this.sweep(x, y);
-        }
-    };
     //死亡
     Minesweeper.prototype.died = function() {
         for(let i = 0; i < this.y; i++) {
@@ -326,8 +305,38 @@ let Minesweeper = (function() {
         this.ct.fillStyle = 'red';
         this.ct.fillText('DIE', 0, 0);
     }
+    //点击
+    Minesweeper.prototype.clickOn = function(x, y) {
+        if(x < 0 || y < 0 || x > this.x - 1 || y > this.y - 1)
+            return;
+        let landmine = this.matrix[y][x];
+        if(landmine.beenOverturn) {
+            this.quickClick(x, y);
+            return;
+        }
+
+        if(landmine.flag || landmine.qestionMark)
+            return;
+
+        landmine.overturn();
+
+        if(landmine.hasBomb) {
+            this.died();
+            this.over = true;
+            return;
+        }
+
+        if(landmine.number !== 0) {
+            this.drawBlock(x, y, 1);
+            this.drawNumber(x, y, landmine.number);
+        } else {
+            this.drawBlock(x, y, 1);
+            this.sweep(x, y);
+        }
+    };
+
     Minesweeper.prototype.sweep = function(x, y) {
-        let queue = [];
+        let queue = new Array();
         queue.push(new C(x, y));
         let M = this.matrix;
 
@@ -348,48 +357,30 @@ let Minesweeper = (function() {
                 });
             }
         }
-
-        // while(stack.length !== 0) {
-        //     let tmpC = stack.pop();
-        //     let x = tmpC.x, y = tmpC.y;
-        //     this.clickOn(x, y);
-
-        //     if(this.matrix[y][x].number === 0) {
-        //         if(y > 0) {
-        //             if(x > 0) {
-        //                 if(!this.matrix[y-1][x-1].beenOverturn) 
-        //                     stack.push(new C(x-1, y-1));
-        //             }
-        //             if(!this.matrix[y-1][x].beenOverturn) 
-        //                     stack.push(new C(x, y-1));
-        //             if(x < this.x - 1) {
-        //                 if(!this.matrix[y-1][x+1].beenOverturn) 
-        //                     stack.push(new C(x+1, y-1));
-        //             }
-        //         }
-        //         if(x > 0) {
-        //             if(!this.matrix[y][x-1].beenOverturn) 
-        //                 stack.push(new C(x-1, y));
-        //         }
-        //         if(x < this.x - 1) {
-        //             if(!this.matrix[y][x+1].beenOverturn) 
-        //                 stack.push(new C(x+1, y));
-        //         }
-        //         if(y < this.y - 1) {
-        //             if(x > 0) {
-        //                 if(!this.matrix[y+1][x-1].beenOverturn) 
-        //                     stack.push(new C(x-1, y+1));
-        //             }
-        //             if(!this.matrix[y+1][x].beenOverturn) 
-        //                     stack.push(new C(x, y+1));
-        //             if(x < this.x - 1) {
-        //                 if(!this.matrix[y+1][x+1].beenOverturn) 
-        //                     stack.push(new C(x+1, y+1));
-        //             }
-        //         }
-        //     }
-        // }
     };
+    Minesweeper.prototype.quickClick = function(x, y) {
+        let M = this.matrix;
+        let number = M[y][x].number;
+        let rc = this.getRoundBlock(x, y);
+        let count = 0;
+
+        rc.map((v) => {
+            let x = v.x, y = v.y;
+            if(M[y][x].flag) {
+                ++count;
+            }
+        });
+
+        if(count !== number) return;
+        //console.log(rc);
+        rc.map((v) => {
+            let cx = v.x, cy = v.y;
+            //console.log(M[y][x].beenOverturn + '\n');
+            if(!M[cy][cx].beenOverturn) {
+                this.clickOn(cx, cy);
+            }
+        });
+    }
 
     //绘制函数
     Minesweeper.prototype.drawMinefields = function() {
@@ -424,7 +415,7 @@ let Minesweeper = (function() {
     **/
     Minesweeper.prototype.drawNumber = function(x, y, num) {
         let size = this.blockSize;
-        this.ct.font = 'bold 30px Arial';
+        this.ct.font = 'bold ' + this.blockSize + 'px Arial';
         this.ct.textAling = 'center';
         this.ct.textBaseline = 'top';
         this.ct.fillStyle = this.numberColor[num];
@@ -469,11 +460,11 @@ let Minesweeper = (function() {
 
         que.push(new C(x - 1, y));
         que.push(new C(x + 1, y));
-        
+
         que.push(new C(x + 1, y + 1));
         que.push(new C(x,     y + 1));
         que.push(new C(x - 1, y + 1));
-        
+
 
         for(let i = 0; i < que.length; ) {
             let y = que[i].y, x = que[i].x;
