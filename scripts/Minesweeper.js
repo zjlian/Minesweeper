@@ -464,13 +464,16 @@ let Minesweeper = (function() {
     Minesweeper.prototype.getRoundBlock = function(x, y) {
         let que = new Array();
         que.push(new C(x - 1, y - 1));
-        que.push(new C(x, y - 1));
-        que.push(new C(x + 1, y));
+        que.push(new C(x,     y - 1));
+        que.push(new C(x + 1, y - 1));
+
         que.push(new C(x - 1, y));
-        que.push(new C(x, y - 1));
+        que.push(new C(x + 1, y));
+        
         que.push(new C(x + 1, y + 1));
+        que.push(new C(x,     y + 1));
         que.push(new C(x - 1, y + 1));
-        que.push(new C(x, y + 1));
+        
 
         for(let i = 0; i < que.length; ) {
             let y = que[i].y, x = que[i].x;
