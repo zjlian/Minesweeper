@@ -55,8 +55,9 @@ let Minesweeper = (function() {
         this.readied = false;   //游戏准备完成状态
         this.gameStart = false; //游戏开始状态
         this.over = false;
+        this.win = false;
 
-        this.matrix;    //Landmine[][] 储存地雷状态的二位数组
+        this.matrix = new Array();    //Landmine[][] 储存地雷状态的二位数组
         this.x = 9;     //地雷矩阵的大小
         this.y = 9;
         this.amount = 10;
@@ -65,91 +66,86 @@ let Minesweeper = (function() {
 
         this.init(canvasID);
 
-        let that = this;
+        let self = this;
 
         //屏蔽右键菜单
         this.minefields.addEventListener('contextmenu', function(e) {
-            //console.log(e.type);
             e.preventDefault();
-
         });
 
         //绑定鼠标点击事件
         this.minefields.addEventListener('mousedown', function(e) {
-            if(that.over || !that.readied) return;
+            if(self.over || !self.readied) return;
             //console.log(e.type);
-            let curX = Math.floor(e.offsetX / that.blockSize),
-                curY = Math.floor(e.offsetY / that.blockSize);
+            let curX = Math.floor(e.offsetX / self.blockSize),
+                curY = Math.floor(e.offsetY / self.blockSize);
             //console.log(e.button);
-            let tempLandmine = that.matrix[curY][curX];
+            let tempLandmine = self.matrix[curY][curX];
 
             //按下鼠标主键
             if(e.button === 0 && tempLandmine.getMarkType() === 0) {
-                if(!that.gameStart) {
-                    that.createLandmines(curX, curY);
-                    that.gameStart = true;
+                if(!self.gameStart) {
+                    self.createLandmines(curX, curY);
+                    self.gameStart = true;
                 }
-                //that.tester();
-                //if(!that.matrix[curY][curX].beenOverturn)
-                    that.clickOn(curX, curY);
+                self.clickOn(curX, curY);
             //按下鼠标次键
             } else if(e.button === 2 && !tempLandmine.beenOverturn) {
-                that.make(curX, curY);
-                that.drawBlock(curX, curY, 0);
+                self.make(curX, curY);
+                self.drawBlock(curX, curY, 0);
                 let n = tempLandmine.getMarkType();
-                if(n !== 0)
-                    that.drawBlock(curX, curY, n);
+                if(n !== 0) {
+                    self.drawBlock(curX, curY, n);
+                }
             }
         });
-
-        this.minefields.addEventListener('ondblclick', function(e) {
-            console.log(e);
-        })
 
         //绑定鼠标移动事件， 用于给方块绘制高亮
         let tmpX = 3, tmpY = 3;
         this.minefields.addEventListener('mousemove', function(e) {
-            if(that.over || !that.readied) return;
-            tmpX = tmpX >= that.x ? that.x - 1 : tmpX;
-            tmpY = tmpY >= that.y ? that.y - 1 : tmpY;
+            if(self.over || !self.readied) return;
+            tmpX = tmpX >= self.x ? self.x - 1 : tmpX;
+            tmpY = tmpY >= self.y ? self.y - 1 : tmpY;
             //将鼠标相对被监听元素的坐标，转换为地雷的矩阵坐标
-            let curX = Math.floor(e.offsetX / that.blockSize),
-                curY = Math.floor(e.offsetY / that.blockSize);
+            let curX = Math.floor(e.offsetX / self.blockSize),
+                curY = Math.floor(e.offsetY / self.blockSize);
             //如果该次mousemove事件 触发的坐标与上一次不同
             if(curX !== tmpX || curY !== tmpY) {
                 //判断触发的坐标是否合法
-                if(curX >= that.x || curY >= that.y || curX < 0 || curY < 0)
+                if(curX >= self.x || curY >= self.y || curX < 0 || curY < 0)
                     return;
                 //如果这次的焦点方块是被翻开过或被标记 跳出，不进行高亮绘制
-                let curLandmine = that.matrix[curY][curX];
-                let tmpLandmine = that.matrix[tmpY][tmpX];
+                let curLandmine = self.matrix[curY][curX];
+                let tmpLandmine = self.matrix[tmpY][tmpX];
 
                 //清除上一次绘制的高亮
                 if(!tmpLandmine.beenOverturn && tmpLandmine.getMarkType() === 0) {
-                    that.drawBlock(tmpX, tmpY, 0);
+                    self.drawBlock(tmpX, tmpY, 0);
                 } 
                 if(tmpLandmine.beenOverturn) {
-                    that.drawBlock(tmpX, tmpY, 1);
+                    self.drawBlock(tmpX, tmpY, 1);
                     if(tmpLandmine.number !==0) {
-                        that.drawNumber(tmpX, tmpY, tmpLandmine.number);
+                        self.drawNumber(tmpX, tmpY, tmpLandmine.number);
                     } else if(tmpLandmine.hasBomb){
-                        that.drawBlock(tmpX, tmpY, 4);
+                        self.drawBlock(tmpX, tmpY, 4);
                     } else
                         ;
                 } else {
-                    that.drawBlock(tmpX, tmpY, 0);
+                    self.drawBlock(tmpX, tmpY, 0);
                     let n = tmpLandmine.getMarkType();
-                    that.drawBlock(tmpX, tmpY, n);
+                    self.drawBlock(tmpX, tmpY, n);
                 }
 
                 //绘制高亮，并缓存绘制的坐标
-                that.ct.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                that.ct.fillRect(curX * that.blockSize, curY * that.blockSize, that.blockSize, that.blockSize);
+                self.ct.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                self.ct.fillRect(curX * self.blockSize, curY * self.blockSize, self.blockSize, self.blockSize);
                 tmpX = curX;
                 tmpY = curY;
+
             }
-        }, false);
+        });
     }
+
     //雷区的绘制大小
     Minesweeper.prototype.blockSize = 24;
     //image[] 全类共享的图片资源
@@ -195,10 +191,12 @@ let Minesweeper = (function() {
         this.readied = true;
         this.gameStart = false;
         this.over = false;
+        this.win = false;
     };
     //随机生成地雷, 参数为不生成地雷的坐标
     Minesweeper.prototype.createLandmines = function(x, y) {
         if(!this.readied) return;
+        let self = this;
         let count = 0;
         let r = 0;
         //随机布置地雷
@@ -229,51 +227,21 @@ let Minesweeper = (function() {
             count++;
         }
         this.lastMines = count;
-        //计算每个区块四周地雷的数量
-        for(let i = 0; i < this.y; i++) {
-            for(let j = 0; j < this.x; j++) {
-                let count = 0;
-                //正上方的三个方块
-                if(i > 0) {
-                    if(j > 0) {
-                        if(this.matrix[i-1][j-1].hasBomb)
-                            ++count;
-                    }
-                    if(this.matrix[i-1][j].hasBomb)
-                        ++count;
-                    if(j < this.x - 1) {
-                        if(this.matrix[i-1][j+1].hasBomb)
-                            ++count;
-                    }
-                }
-                //左侧的一个方块
-                if(j > 0) {
-                    if(this.matrix[i][j-1].hasBomb)
-                        ++count;
-                }
 
-                //右侧的一个方块
-                if(j < this.x - 1) {
-                    if(this.matrix[i][j+1].hasBomb)
-                        ++count;
-                }
-                
-                //正下方的三个方块
-                if(i < this.y - 1) {
-                    if(j > 0) {
-                        if(this.matrix[i+1][j-1].hasBomb)
-                            ++count;
+        //计算每个区块四周地雷的数量
+        this.matrix.map((arr, y) => {
+            arr.map((v, x) => {
+                let rb = this.getRoundBlock(x, y);
+                let count = 0;
+                rb.map((m) => {
+                    let rx = m.x, ry = m.y;
+                    if(this.matrix[ry][rx].hasBomb) {
+                        count++;
                     }
-                    if(this.matrix[i+1][j].hasBomb)
-                        ++count;
-                    if(j < this.x - 1) {
-                        if(this.matrix[i+1][j+1].hasBomb)
-                            ++count;
-                    }
-                }
-                this.matrix[i][j].setNumber(count);
-            }
-        }
+                });
+                this.matrix[y][x].setNumber(count);
+            });
+        });
     };
     //游戏逻辑实现函数
     //转换坐标区块的标记状态 ，!!这个函数不会更新画面，需自己写绘制代码,
@@ -303,25 +271,45 @@ let Minesweeper = (function() {
                 }
             }
         }
-        let fs = (this.x*this.blockSize)/3;
+        let fs = (this.x*this.blockSize) * 0.6;
         this.ct.font = 'bold ' + fs + 'px Arial';
         this.ct.textAling = 'center';
         this.ct.textBaseline = 'top';
-        this.ct.fillStyle = 'red';
+        this.ct.fillStyle = 'rgba(250, 0, 0, 0.6)';
         this.ct.fillText('DIE', 0, 0);
-    }
+    };
+    //胜利
+    Minesweeper.prototype.winJudge = function() {
+        if(this.lastMines > 3) {
+            return;
+        }
+        let beenOverturnCount = 0;
+        this.matrix.map((arr) => {
+            arr.map((m) => {
+                if(m.beenOverturn) {
+                    ++beenOverturnCount;
+                }
+            })
+        });
+        return (this.x * this.y) - beenOverturnCount === this.amount;
+    };
     //点击
     Minesweeper.prototype.clickOn = function(x, y) {
-        if(x < 0 || y < 0 || x > this.x - 1 || y > this.y - 1)
+        if(this.win) {
             return;
+        }
+        if(x < 0 || y < 0 || x > this.x - 1 || y > this.y - 1){
+            return;
+        }
         let landmine = this.matrix[y][x];
         if(landmine.beenOverturn) {
             this.quickClick(x, y);
             return;
         }
 
-        if(landmine.flag || landmine.qestionMark)
+        if(landmine.flag || landmine.qestionMark) {
             return;
+        }
 
         landmine.overturn();
 
@@ -331,6 +319,7 @@ let Minesweeper = (function() {
             return;
         }
 
+
         if(landmine.number !== 0) {
             this.drawBlock(x, y, 1);
             this.drawNumber(x, y, landmine.number);
@@ -338,8 +327,16 @@ let Minesweeper = (function() {
             this.drawBlock(x, y, 1);
             this.sweep(x, y);
         }
-    };
 
+        if(this.winJudge()) {
+            //self.winner();
+            this.readied = false;
+            this.gameStart = false;
+            this.win = true;
+            alert('牛逼！！');
+        }
+    };
+    //清理空白
     Minesweeper.prototype.sweep = function(x, y) {
         let queue = new Array();
         queue.push(new C(x, y));
@@ -363,6 +360,7 @@ let Minesweeper = (function() {
             }
         }
     };
+    //传入参数所在方块附近八个方块上标记了和中心方块数值一样的旗子数时，点开周围没有插旗的方块
     Minesweeper.prototype.quickClick = function(x, y) {
         let M = this.matrix;
         let number = M[y][x].number;
@@ -377,15 +375,14 @@ let Minesweeper = (function() {
         });
 
         if(count !== number) return;
-        //console.log(rc);
+
         rc.map((v) => {
             let cx = v.x, cy = v.y;
-            //console.log(M[y][x].beenOverturn + '\n');
             if(!M[cy][cx].beenOverturn) {
                 this.clickOn(cx, cy);
             }
         });
-    }
+    };
 
     //绘制函数
     Minesweeper.prototype.drawMinefields = function() {
@@ -478,7 +475,7 @@ let Minesweeper = (function() {
             } else ++i;
         }
         return que;
-    }
+    };
 
     return Minesweeper;
 }());
